@@ -1,0 +1,174 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Brand {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  logoUrl   String?
+  country   String?
+  models    Model[]
+  createdAt DateTime @default(now())
+  @@map("brands")
+}
+
+model Model {
+  id         String      @id @default(cuid())
+  brandId    String
+  brand      Brand       @relation(fields: [brandId], references: [id])
+  name       String
+  slug       String      @unique
+  level      String?
+  priceMin   Decimal?
+  priceMax   Decimal?
+  evType     String?
+  status     String      @default("active")
+  motorType       String?
+  motorPower      Decimal?
+  motorTorque     Decimal?
+  batteryCapacity Decimal?
+  batteryType     String?
+  rangeCLTC       Decimal?
+  rangeWLTC       Decimal?
+  acceleration    Decimal?
+  topSpeed        Decimal?
+  fuelType        String?
+  fuelConsumption Decimal?
+  enginePower     Decimal?
+  engineTorque    Decimal?
+  length       Decimal?
+  width        Decimal?
+  height       Decimal?
+  wheelbase    Decimal?
+  trunkVolume  Decimal?
+  weight       Decimal?
+  seats        Int?
+  driveMode   String?
+  suspensionF String?
+  suspensionR String?
+  chip      String?
+  adasLevel String?
+  screen    String?
+  carPlay   Boolean?
+  ota       Boolean?
+  chargeFast  Decimal?
+  chargeSlow  Decimal?
+  chargePower Decimal?
+  voltage     String?
+  salesVolume2025 Int?     // 2025年销量(辆)
+
+  // 外观配置
+  sunroof       String?   // 天窗：无/单天窗/全景天窗
+  wheels        String?   // 轮毂：如19英寸
+  headlights    String?   // 大灯：LED/矩阵LED/激光
+  hiddenHandle  Boolean?  // 隐藏门把手
+  electricTail  Boolean?  // 电动尾门
+
+  // 内饰配置
+  seatMaterial  String?   // 座椅材质：织物/仿皮/真皮/Nappa
+  seatVentHeat  String?   // 座椅通风加热：无/仅加热/通风+加热
+  steeringHeat  Boolean?  // 方向盘加热
+  ambientLight  String?   // 氛围灯：无/单色/多色
+  rearScreen    String?   // 后排娱乐屏
+
+  // 安全配置
+  airbags       Int?      // 气囊数量
+  tirePressure  String?   // 胎压监测：无/间接/直接
+  autoBrake     Boolean?  // AEB自动紧急制动
+  blindSpot     Boolean?  // 盲区监测
+
+  // 舒适便利
+  acType        String?   // 空调：手动/自动/双区/三区/四区
+  airPurifier   Boolean?  // 空气净化
+  wirelessCharge Boolean? // 无线充电
+  hud           String?   // 抬头显示：无/W-HUD/AR-HUD
+  keyless       Boolean?  // 无钥匙进入+启动
+  remoteControl String?   // 远程控制：无/APP远程/蓝牙钥匙
+
+  // 驾驶辅助
+  acc           String?   // 自适应巡航：无/定速/全速ACC
+  lka           Boolean?  // 车道保持
+  autoPark      String?   // 自动泊车：无/自动泊车/记忆泊车
+  remotePark    Boolean?  // 遥控泊车
+  nop           String?   // 领航辅助：无/高速NOA/城市NOA
+  articles    Article[]
+  imageUrl     String?
+  carSources  CarSource[]
+  createdAt   DateTime    @default(now())
+  @@map("models")
+}
+
+model Article {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  content     String
+  type        String
+  coverImage  String?
+  modelId     String?
+  model       Model?    @relation(fields: [modelId], references: [id])
+  author      String    @default("车友荟编辑部")
+  viewCount   Int       @default(0)
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  @@map("articles")
+}
+
+model CarSource {
+  id          String    @id @default(cuid())
+  modelId     String
+  model       Model     @relation(fields: [modelId], references: [id])
+  sellerId    String
+  seller      User      @relation(fields: [sellerId], references: [id], name: "CarSourceSeller")
+  year        Int
+  mileage     Decimal
+  price       Decimal
+  city        String
+  description String?
+  images      Json
+  status      String    @default("pending")
+  viewCount   Int       @default(0)
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  messages    Message[]
+  @@map("car_sources")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  phone         String    @unique
+  password      String    // bcrypt hash
+  nickname      String?
+  avatar        String?
+  role          String    @default("user")
+  carSources    CarSource[] @relation("CarSourceSeller")
+  messages      Message[]
+  sessions      Session[]
+  createdAt     DateTime  @default(now())
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  @@map("sessions")
+}
+
+model Message {
+  id        String    @id @default(cuid())
+  sourceId  String
+  carSource CarSource @relation(fields: [sourceId], references: [id])
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  content   String
+  createdAt DateTime  @default(now())
+  @@map("messages")
+}
