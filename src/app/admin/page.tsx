@@ -8,6 +8,7 @@ const modules = [
   { name: "车型管理", href: "/admin/models", desc: "管理车型数据和报价", icon: "🚗" },
   { name: "资讯管理", href: "/admin/articles", desc: "发布和管理文章", icon: "📰" },
   { name: "车源管理", href: "/admin/car-sources", desc: "审核和管理二手车源", icon: "💰" },
+  { name: "车友会管理", href: "/admin/clubs", desc: "管理车友会入驻和内容采集", icon: "🏍️" },
 ];
 
 export default function AdminPage() {

@@ -172,3 +172,38 @@ model Message {
   createdAt DateTime  @default(now())
   @@map("messages")
 }
+
+model Club {
+  id             String    @id @default(cuid())
+  name           String
+  slug           String    @unique
+  city           String?
+  brand          String?
+  sourcePlatform String?   // wechat / douyin / xiaohongshu
+  sourceUrl      String?
+  sourceId       String?
+  avatar         String?
+  description    String?
+  status         String    @default("pending") // pending / active / banned
+  isAutoCreated  Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  posts          ClubPost[]
+  @@map("clubs")
+}
+
+model ClubPost {
+  id             String    @id @default(cuid())
+  clubId         String
+  club           Club      @relation(fields: [clubId], references: [id])
+  title          String
+  content        String?
+  images         Json?
+  videoUrl       String?
+  sourceUrl      String?
+  sourcePlatform String?
+  publishedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  @@unique([clubId, sourceUrl])
+  @@map("club_posts")
+}
