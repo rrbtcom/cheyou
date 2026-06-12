@@ -130,6 +130,12 @@ export default function ClubsAdmin() {
                 )}
                 {c.status === "active" && (
                   <Link
+                    href={`/admin/clubs/${c.id}/edit`}
+                    className="text-xs px-3 py-1.5 border rounded hover:bg-gray-50"
+                  >
+                    编辑
+                  </Link>
+                  <Link
                     href={`/clubs/${c.slug}`}
                     className="text-xs px-3 py-1.5 border rounded hover:bg-gray-50"
                     target="_blank"
