@@ -87,9 +87,9 @@ export default function ClubDetailPage() {
       </div>
 
       {/* Posts */}
-      <h2 className="text-xl font-bold mb-4">全部内容 ({club.posts.length})</h2>
+      <h2 className="text-xl font-bold mb-4">全部文章 ({club.posts.length})</h2>
       {club.posts.length === 0 ? (
-        <p className="text-gray-400">暂无内容</p>
+        <p className="text-gray-400">暂无文章</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {club.posts.map((post) => {

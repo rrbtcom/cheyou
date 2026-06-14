@@ -66,7 +66,7 @@ export default function ClubsPage() {
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">车友会广场</h1>
-        <p className="text-gray-500 mt-1">发现全国车友会动态，找到属于你的圈子</p>
+        <p className="text-gray-500 mt-1">精选车友文章，发现真实用车体验</p>
       </div>
 
       {/* Filters */}
@@ -131,11 +131,11 @@ export default function ClubsPage() {
           </div>
 
           {/* Content Square - All Posts */}
-          <h2 className="text-xl font-bold text-gray-900 mb-4">最新动态</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">精选文章</h2>
           {allPosts.length === 0 ? (
             <p className="text-gray-400">暂无动态</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
               {allPosts.map((post) => {
                 const coverImage =
                   post.images && Array.isArray(post.images) && post.images.length > 0
@@ -145,10 +145,10 @@ export default function ClubsPage() {
                   <Link
                     key={post.id}
                     href={`/clubs/${post.club.slug}/${post.id}`}
-                    className="border rounded-xl overflow-hidden hover:shadow-md transition group"
+                    className="bg-white border rounded-xl overflow-hidden hover:shadow-lg transition group"
                   >
                     {coverImage ? (
-                      <div className="aspect-video bg-gray-100 overflow-hidden">
+                      <div className="aspect-[4/3] bg-gray-100 overflow-hidden">
                         <img
                           src={coverImage}
                           alt={post.title}
@@ -156,18 +156,16 @@ export default function ClubsPage() {
                         />
                       </div>
                     ) : (
-                      <div className="aspect-video bg-gray-50 flex items-center justify-center text-gray-300 text-4xl">
-                        📄
+                      <div className="aspect-[4/3] bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
+                        <span className="text-3xl">🚗</span>
                       </div>
                     )}
-                    <div className="p-3">
-                      <h3 className="font-medium text-sm line-clamp-2 group-hover:text-blue-600">{post.title}</h3>
-                      <div className="flex items-center gap-2 mt-2 text-xs text-gray-400">
-                        <span className="text-gray-600">{post.club.name}</span>
-                        {post.sourcePlatform && (
-                          <span className={`px-1.5 py-0.5 rounded text-xs ${platformColor[post.sourcePlatform] || "bg-gray-100 text-gray-500"}`}>
-                            {platformLabel[post.sourcePlatform] || post.sourcePlatform}
-                          </span>
+                    <div className="p-2.5">
+                      <h3 className="font-medium text-xs leading-snug line-clamp-2 group-hover:text-blue-600 mb-2">{post.title}</h3>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full font-medium truncate max-w-[100px]">{post.club.brand}</span>
+                        {post.publishedAt && (
+                          <span className="text-xs text-gray-400">{new Date(post.publishedAt).toLocaleDateString("zh-CN", {month:"short",day:"numeric"})}</span>
                         )}
                       </div>
                     </div>
