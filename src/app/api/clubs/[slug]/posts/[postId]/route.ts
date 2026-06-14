@@ -8,9 +8,9 @@ export async function GET(
   const { slug, postId } = await params;
   const post = await prisma.clubPost.findUnique({
     where: { id: postId },
-    include: { club: { where: { slug, status: "active" } } },
+    include: { club: true },
   });
-  if (!post || !post.club || (post.club as unknown as { slug: string }).slug !== slug) {
+  if (!post || !post.club || post.club.slug !== slug || post.club.status !== "active") {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
   return NextResponse.json(post);
