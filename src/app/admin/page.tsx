@@ -9,6 +9,7 @@ const modules = [
   { name: "资讯管理", href: "/admin/articles", desc: "发布和管理文章", icon: "📰" },
   { name: "车源管理", href: "/admin/car-sources", desc: "审核和管理二手车源", icon: "💰" },
   { name: "车友会管理", href: "/admin/clubs", desc: "管理车友会入驻和内容采集", icon: "🏍️" },
+  { name: "车友文章", href: "/admin/posts", desc: "管理车友文章内容", icon: "📝" },
 ];
 
 export default function AdminPage() {
