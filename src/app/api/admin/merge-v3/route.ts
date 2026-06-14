@@ -5,6 +5,7 @@ import { readFileSync } from "fs";
 export async function POST(req: Request) {
   const files = [
     { path: '/tmp/douyin_wuhan_data.json', platform: 'douyin' },
+    { path: '/tmp/douyin_wuhan_data_v2.json', platform: 'douyin' },
     { path: '/tmp/kuaishou_wuhan_data_v2.json', platform: 'kuaishou' },
     { path: '/tmp/xcar_wuhan_data_v2.json', platform: 'xcar' },
     { path: '/tmp/pcauto_wuhan_data_v2.json', platform: 'pcauto' },
