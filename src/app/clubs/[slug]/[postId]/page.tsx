@@ -17,13 +17,20 @@ type Post = {
     id: string;
     name: string;
     slug: string;
+    brand: string | null;
   };
 };
 
 const platformLabel: Record<string, string> = {
-  wechat: "微信公众号",
-  douyin: "抖音",
+  autohome: "汽车之家",
+  dongchedi: "懂车帝",
+  xcar: "爱卡汽车",
+  pcauto: "太平洋汽车",
+  bilibili: "哔哩哔哩",
   xiaohongshu: "小红书",
+  douyin: "抖音",
+  kuaishou: "快手",
+  wechat: "微信公众号",
 };
 
 export default function PostDetailPage() {
@@ -43,13 +50,21 @@ export default function PostDetailPage() {
   if (loading) return <div className="max-w-3xl mx-auto px-4 py-8">加载中...</div>;
   if (!post) return <div className="max-w-3xl mx-auto px-4 py-8 text-gray-400">内容未找到</div>;
 
+  const brandSlug = post.club.brand ? encodeURIComponent(post.club.brand) : "";
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
       {/* Breadcrumb */}
-      <nav className="text-sm text-gray-400 mb-6 flex items-center gap-1">
+      <nav className="text-sm text-gray-400 mb-6 flex items-center gap-1 flex-wrap">
         <Link href="/clubs" className="hover:text-blue-600">车友会</Link>
         <span>/</span>
         <Link href={`/clubs/${post.club.slug}`} className="hover:text-blue-600">{post.club.name}</Link>
+        {post.club.brand && (
+          <>
+            <span>/</span>
+            <Link href={`/brands/${brandSlug}`} className="hover:text-blue-600">{post.club.brand}车友会</Link>
+          </>
+        )}
         <span>/</span>
         <span className="text-gray-600">正文</span>
       </nav>
@@ -82,7 +97,6 @@ export default function PostDetailPage() {
           </p>
         )}
 
-        {/* Images */}
         {post.images && Array.isArray(post.images) && post.images.length > 0 && (
           <div className="space-y-3 mb-6">
             {post.images.map((img: string, i: number) => (
@@ -91,18 +105,51 @@ export default function PostDetailPage() {
           </div>
         )}
 
-        {/* Video */}
         {post.videoUrl && (
           <div className="mb-6">
             <video src={post.videoUrl} controls className="w-full rounded-lg" />
           </div>
         )}
 
-        {/* Content */}
         {post.content && (
           <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap">{post.content}</div>
         )}
       </article>
+
+      {/* Bottom Navigation */}
+      <div className="mt-10 pt-6 border-t border-gray-100">
+        <div className="bg-gray-50 rounded-xl p-5">
+          <p className="text-xs text-gray-400 mb-3">📍 相关推荐</p>
+          <div className="flex flex-col sm:flex-row gap-3">
+            {post.club.brand && (
+              <Link
+                href={`/brands/${brandSlug}`}
+                className="flex-1 flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-4 py-3 hover:border-blue-300 hover:shadow-sm transition-all group"
+              >
+                <span className="text-xl">🚗</span>
+                <div>
+                  <p className="text-xs text-gray-400">查看品牌</p>
+                  <p className="text-sm font-medium text-gray-800 group-hover:text-blue-600">
+                    {post.club.brand}车型大全
+                  </p>
+                </div>
+              </Link>
+            )}
+            <Link
+              href={`/clubs/${post.club.slug}`}
+              className="flex-1 flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-4 py-3 hover:border-blue-300 hover:shadow-sm transition-all group"
+            >
+              <span className="text-xl">🚙</span>
+              <div>
+                <p className="text-xs text-gray-400">进入俱乐部</p>
+                <p className="text-sm font-medium text-gray-800 group-hover:text-blue-600">
+                  {post.club.name}
+                </p>
+              </div>
+            </Link>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -69,6 +69,25 @@ export default function ClubsPage() {
         <p className="text-gray-500 mt-1">精选车友文章，发现真实用车体验</p>
       </div>
 
+      {/* Brand Navigation Strip */}
+      {!loading && brands.length > 0 && (
+        <div className="mb-6">
+          <p className="text-xs text-gray-400 mb-2">🏷️ 按品牌浏览</p>
+          <div className="flex flex-wrap gap-2">
+            {brands.map((brand) => (
+              <Link
+                key={brand}
+                href={`/brands/${encodeURIComponent(brand)}`}
+                className="inline-flex items-center gap-1 px-3 py-1.5 bg-white border border-gray-200 rounded-full text-sm text-gray-600 hover:border-blue-300 hover:text-blue-600 hover:shadow-sm transition-all"
+              >
+                <span>🚗</span>
+                <span>{brand}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Filters */}
       <div className="flex gap-3 mb-6 flex-wrap">
         <select
@@ -163,7 +182,13 @@ export default function ClubsPage() {
                     <div className="p-2.5">
                       <h3 className="font-medium text-xs leading-snug line-clamp-2 group-hover:text-blue-600 mb-2">{post.title}</h3>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full font-medium truncate max-w-[100px]">{post.club.brand}</span>
+                        <Link
+                          href={`/brands/${encodeURIComponent(post.club.brand || "")}`}
+                          className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full font-medium truncate max-w-[100px] hover:bg-blue-100"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {post.club.brand}
+                        </Link>
                         {post.publishedAt && (
                           <span className="text-xs text-gray-400">{new Date(post.publishedAt).toLocaleDateString("zh-CN", {month:"short",day:"numeric"})}</span>
                         )}
