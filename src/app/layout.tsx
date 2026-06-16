@@ -23,7 +23,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                 <a href="/new-cars" className="text-gray-600 hover:text-blue-600">新车资讯</a>
                 <a href="/used-cars" className="text-gray-600 hover:text-blue-600">二手车</a>
                 <a href="/pk" className="text-gray-600 hover:text-blue-600">车型PK</a>
-                <a href="/ranking" className="text-gray-600 hover:text-blue-600">销量榜</a>
+                <a href="/sales-rank" className="text-gray-600 hover:text-blue-600">销量榜</a>
                 <a href="/clubs" className="text-gray-600 hover:text-blue-600">车友会</a>
                 <a href="/about" className="text-gray-600 hover:text-blue-600">关于</a>
               </nav>

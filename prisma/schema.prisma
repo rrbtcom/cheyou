@@ -177,6 +177,7 @@ model Club {
   id             String    @id @default(cuid())
   name           String
   slug           String    @unique
+  category       String    @default("car") // car / truck / rv
   city           String?
   brand          String?
   sourcePlatform String?   // wechat / douyin / xiaohongshu
@@ -206,4 +207,22 @@ model ClubPost {
   createdAt      DateTime  @default(now())
   @@unique([clubId, sourceUrl])
   @@map("club_posts")
+}
+
+model SalesRank {
+  id          String   @id @default(cuid())
+  period      String   // "2025-05" 格式
+  rankType    String   // total / ev / sedan / suv / mpv
+  rank        Int      // 排名 1-100
+  brand       String   // 品牌
+  model       String   // 车型
+  sales       Int      // 销量（辆）
+  YoY         Float?   // 同比 %
+  MoM         Float?   // 环比 %
+  source      String   // caam / pca / cadt
+  sourceUrl   String?
+  createdAt   DateTime @default(now())
+  @@unique([period, rankType, rank, source])
+  @@index([period, rankType])
+  @@map("sales_ranks")
 }

@@ -18,6 +18,7 @@ type Club = {
   id: string;
   name: string;
   slug: string;
+  category: string;
   city: string | null;
   brand: string | null;
   sourcePlatform: string | null;
@@ -26,21 +27,18 @@ type Club = {
   posts: Post[];
 };
 
-const platformLabel: Record<string, string> = {
-  wechat: "微信",
-  douyin: "抖音",
-  xiaohongshu: "小红书",
-};
-const platformColor: Record<string, string> = {
-  wechat: "bg-green-100 text-green-700",
-  douyin: "bg-gray-100 text-gray-700",
-  xiaohongshu: "bg-red-100 text-red-700",
-};
+const CATEGORIES = [
+  { key: "all", label: "全部", icon: "🌐" },
+  { key: "car", label: "乘用车", icon: "🚗" },
+  
+  { key: "rv", label: "房车", icon: "🚐" },
+];
 
 export default function ClubsPage() {
   const [clubs, setClubs] = useState<Club[]>([]);
   const [cityFilter, setCityFilter] = useState("");
   const [brandFilter, setBrandFilter] = useState("");
+  const [activeCategory, setActiveCategory] = useState("all");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -48,16 +46,16 @@ export default function ClubsPage() {
     const params = new URLSearchParams();
     if (cityFilter) params.set("city", cityFilter);
     if (brandFilter) params.set("brand", brandFilter);
+    if (activeCategory !== "all") params.set("category", activeCategory);
     fetch(`/api/clubs?${params}`)
       .then((r) => r.json())
       .then((data) => { setClubs(data); setLoading(false); })
       .catch(() => { setClubs([]); setLoading(false); });
-  }, [cityFilter, brandFilter]);
+  }, [cityFilter, brandFilter, activeCategory]);
 
   const cities = [...new Set(clubs.map((c) => c.city).filter(Boolean))] as string[];
   const brands = [...new Set(clubs.map((c) => c.brand).filter(Boolean))] as string[];
 
-  // Flatten all posts for the content square
   const allPosts = clubs.flatMap((club) =>
     club.posts.map((post) => ({ ...post, club }))
   );
@@ -69,8 +67,35 @@ export default function ClubsPage() {
         <p className="text-gray-500 mt-1">精选车友文章，发现真实用车体验</p>
       </div>
 
-      {/* Brand Navigation Strip */}
-      {!loading && brands.length > 0 && (
+      {/* Category Tabs */}
+      <div className="mb-6 border-b border-gray-200">
+        <div className="flex gap-1 -mb-px overflow-x-auto">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat.key}
+              onClick={() => setActiveCategory(cat.key)}
+              className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 rounded-t-lg whitespace-nowrap transition-colors ${
+                activeCategory === cat.key
+                  ? "border-blue-500 text-blue-600 bg-blue-50"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              <span>{cat.icon}</span>
+              <span>{cat.label}</span>
+              {cat.key !== "all" && (
+                <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                  activeCategory === cat.key ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-500"
+                }`}>
+                  {cat.key === "truck" ? "0" : cat.key === "rv" ? "10" : clubs.length}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Brand Navigation Strip (only for car category) */}
+      {!loading && activeCategory === "car" && brands.length > 0 && (
         <div className="mb-6">
           <p className="text-xs text-gray-400 mb-2">🏷️ 按品牌浏览</p>
           <div className="flex flex-wrap gap-2">
@@ -85,6 +110,17 @@ export default function ClubsPage() {
               </Link>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Category-specific description */}
+      {activeCategory === "truck" && (
+        <div className="mb-6 p-4 bg-orange-50 border border-orange-100 rounded-xl">
+        </div>
+      )}
+      {activeCategory === "rv" && (
+        <div className="mb-6 p-4 bg-purple-50 border border-purple-100 rounded-xl">
+          <p className="text-sm text-purple-800">🚐 房车频道收录长城房车、上汽大通、宇通、金冠等房车品牌车友社区内容</p>
         </div>
       )}
 
@@ -135,7 +171,11 @@ export default function ClubsPage() {
                     </div>
                   )}
                   <div>
-                    <h3 className="font-semibold group-hover:text-blue-600">{club.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold group-hover:text-blue-600">{club.name}</h3>
+                      {club.category === "truck" && <span className="text-xs bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded">🚛</span>}
+                      {club.category === "rv" && <span className="text-xs bg-purple-100 text-purple-600 px-1.5 py-0.5 rounded">🚐</span>}
+                    </div>
                     <div className="text-xs text-gray-400 flex gap-2">
                       {club.city && <span>📍{club.city}</span>}
                       {club.brand && <span>🚗{club.brand}</span>}
@@ -149,7 +189,7 @@ export default function ClubsPage() {
             ))}
           </div>
 
-          {/* Content Square - All Posts */}
+          {/* Content Square */}
           <h2 className="text-xl font-bold text-gray-900 mb-4">精选文章</h2>
           {allPosts.length === 0 ? (
             <p className="text-gray-400">暂无动态</p>
@@ -160,6 +200,7 @@ export default function ClubsPage() {
                   post.images && Array.isArray(post.images) && post.images.length > 0
                     ? post.images[0]
                     : null;
+                const catEmoji = post.club.category === "truck" ? "🚛" : post.club.category === "rv" ? "🚐" : "🚗";
                 return (
                   <Link
                     key={post.id}
@@ -176,7 +217,7 @@ export default function ClubsPage() {
                       </div>
                     ) : (
                       <div className="aspect-[4/3] bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
-                        <span className="text-3xl">🚗</span>
+                        <span className="text-3xl">{catEmoji}</span>
                       </div>
                     )}
                     <div className="p-2.5">
@@ -190,7 +231,9 @@ export default function ClubsPage() {
                           {post.club.brand}
                         </Link>
                         {post.publishedAt && (
-                          <span className="text-xs text-gray-400">{new Date(post.publishedAt).toLocaleDateString("zh-CN", {month:"short",day:"numeric"})}</span>
+                          <span className="text-xs text-gray-400">
+                            {new Date(post.publishedAt).toLocaleDateString("zh-CN", {month:"short",day:"numeric"})}
+                          </span>
                         )}
                       </div>
                     </div>

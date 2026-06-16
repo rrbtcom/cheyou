@@ -19,6 +19,7 @@ type Club = {
   id: string;
   name: string;
   slug: string;
+  category: string;
   city: string | null;
   brand: string | null;
   sourcePlatform: string | null;
@@ -39,6 +40,11 @@ const platformColor: Record<string, string> = {
   xiaohongshu: "bg-red-100 text-red-700",
 };
 
+const categoryBadge: Record<string, { label: string; emoji: string; color: string }> = {
+  truck: { label: "卡车", emoji: "🚛", color: "bg-orange-100 text-orange-700" },
+  rv: { label: "房车", emoji: "🚐", color: "bg-purple-100 text-purple-700" },
+};
+
 export default function ClubDetailPage() {
   const params = useParams();
   const slug = params.slug as string;
@@ -55,6 +61,8 @@ export default function ClubDetailPage() {
   if (loading) return <div className="max-w-5xl mx-auto px-4 py-8">加载中...</div>;
   if (!club) return <div className="max-w-5xl mx-auto px-4 py-8 text-gray-400">车友会未找到</div>;
 
+  const cat = categoryBadge[club.category];
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       {/* Club Header */}
@@ -67,8 +75,15 @@ export default function ClubDetailPage() {
           </div>
         )}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{club.name}</h1>
-          <div className="flex gap-3 mt-2 text-sm text-gray-500">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-gray-900">{club.name}</h1>
+            {cat && (
+              <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full ${cat.color}`}>
+                {cat.emoji} {cat.label}
+              </span>
+            )}
+          </div>
+          <div className="flex gap-3 mt-2 text-sm text-gray-500 flex-wrap">
             {club.city && <span>📍 {club.city}</span>}
             {club.brand && <span>🚗 {club.brand}</span>}
             {club.sourcePlatform && (
@@ -97,6 +112,7 @@ export default function ClubDetailPage() {
               post.images && Array.isArray(post.images) && post.images.length > 0
                 ? post.images[0]
                 : null;
+            const catEmoji = club.category === "truck" ? "🚛" : club.category === "rv" ? "🚐" : "📄";
             return (
               <Link
                 key={post.id}
@@ -108,11 +124,11 @@ export default function ClubDetailPage() {
                     <img src={coverImage} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                   </div>
                 ) : (
-                  <div className="aspect-video bg-gray-50 flex items-center justify-center text-gray-300 text-4xl">📄</div>
+                  <div className="aspect-video bg-gray-50 flex items-center justify-center text-gray-300 text-4xl">{catEmoji}</div>
                 )}
                 <div className="p-3">
                   <h3 className="font-medium text-sm line-clamp-2 group-hover:text-blue-600">{post.title}</h3>
-                  <div className="flex items-center gap-2 mt-2 text-xs text-gray-400">
+                  <div className="flex items-center gap-2 mt-2 text-xs text-gray-400 flex-wrap">
                     {post.publishedAt && <span>{new Date(post.publishedAt).toLocaleDateString("zh-CN")}</span>}
                     {post.sourcePlatform && (
                       <span className={`px-1.5 py-0.5 rounded ${platformColor[post.sourcePlatform] || ""}`}>
