@@ -1,13 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import MonthSelector from "./MonthSelector";
-import SourceSelector from "./SourceSelector";
 import TypeSelector from "./TypeSelector";
 import Image from "next/image";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "销量榜单",
-  description: "中国汽车月度销量排行榜，数据来源于中汽协、乘联会、中汽中心。",
+  description: "中国汽车月度销量排行榜，数据综合分析权威行业数据。",
 };
 
 function formatSales(n: number | null) {
@@ -63,9 +62,9 @@ function RankBadge({ rank, change }: { rank: number; change: number | null }) {
 export default async function SalesRankPage({
   searchParams,
 }: {
-  searchParams: Promise<{ month?: string; type?: string; source?: string }>;
+  searchParams: Promise<{ month?: string; type?: string }>;
 }) {
-  const { month, type, source } = await searchParams;
+  const { month, type } = await searchParams;
 
   // 可选月份
   const allPeriods = await prisma.salesRank.findMany({
@@ -77,12 +76,6 @@ export default async function SalesRankPage({
   const activePeriod = month || latestPeriod;
   const availableMonths = allPeriods.map((p) => p.period).slice(0, 12);
 
-  // 来源
-  const allSources = await prisma.salesRank.findMany({
-    select: { source: true },
-    distinct: ["source"],
-  });
-
   // 上月周期（计算排名变化）
   const prevPeriod = (() => {
     if (!latestPeriod) return null;
@@ -92,14 +85,10 @@ export default async function SalesRankPage({
     return `${prevY}-${String(prevM).padStart(2, "0")}`;
   })();
 
-  // 查询当前月数据
-  const where: Record<string, unknown> = {};
-  if (activePeriod) where.period = activePeriod;
-  if (source && source !== "all") where.source = source;
-
+  // 查询当前月数据（综合所有来源）
   const rows = activePeriod
     ? await prisma.salesRank.findMany({
-        where,
+        where: activePeriod ? { period: activePeriod } : {},
         orderBy: { rank: "asc" },
         take: 200,
       })
@@ -110,11 +99,11 @@ export default async function SalesRankPage({
     ? rows.filter((r) => r.rankType === type)
     : rows;
 
-  // 上月排名映射
+  // 上月排名映射（综合）
   let prevRanks: Record<string, number> = {};
   if (prevPeriod) {
     const prevData = await prisma.salesRank.findMany({
-      where: { period: prevPeriod, source: source && source !== "all" ? source : undefined },
+      where: { period: prevPeriod },
       select: { model: true, brand: true, rank: true },
     });
     prevRanks = Object.fromEntries(prevData.map((p) => [`${p.brand} ${p.model}`, p.rank]));
@@ -154,30 +143,17 @@ export default async function SalesRankPage({
       return { ...r, rankNum: idx + 1, change, model };
     });
 
-  const sourceLabels: Record<string, string> = {
-    caam: "中汽协 · 批发量",
-    pca: "乘联会 · 零售量",
-    cadt: "中汽中心 · 上险量",
-  };
-  const SOURCE_COLORS: Record<string, string> = {
-    caam: "bg-blue-50 text-blue-600",
-    pca: "bg-green-50 text-green-700",
-    cadt: "bg-purple-50 text-purple-700",
-  };
-
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* 标题 */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">📊 销量榜单</h1>
-        <p className="text-gray-400 text-xs mt-1">数据源于行业综合销量，每月10日左右更新</p>
+        <p className="text-gray-400 text-xs mt-1">数据综合分析权威行业数据，每月10日左右更新</p>
       </div>
 
       {/* 筛选栏 */}
       <div className="flex flex-wrap items-center gap-3 mb-6 pb-4 border-b">
         <MonthSelector availableMonths={availableMonths} activePeriod={activePeriod} />
-        <div className="h-5 w-px bg-gray-200 hidden sm:block" />
-        <SourceSelector allSources={allSources.map((s) => s.source)} activeSource={source || "all"} />
         <div className="h-5 w-px bg-gray-200 hidden sm:block" />
         <TypeSelector activeType={type || "all"} />
       </div>
@@ -192,20 +168,10 @@ export default async function SalesRankPage({
         <>
           {/* 概览 */}
           <div className="flex gap-3 mb-6 flex-wrap">
-            {(["all", "caam", "pca", "cadt"] as const).map((src) => {
-              const cnt = src === "all"
-                ? rows.length
-                : rows.filter((r) => r.source === src).length;
-              const label = src === "all" ? "全部车型" : sourceLabels[src]?.split(" · ")[0] || src;
-              const color = src === "all" ? "bg-gray-100 text-gray-700" : SOURCE_COLORS[src];
-              if (src !== "all" && cnt === 0) return null;
-              return (
-                <div key={src} className={"border rounded-lg px-4 py-2.5 text-center min-w-[90px] " + color}>
-                  <div className="text-xs opacity-70">{label}</div>
-                  <div className="text-xl font-bold">{cnt}</div>
-                </div>
-              );
-            })}
+            <div className="border rounded-lg px-4 py-2.5 text-center min-w-[90px] bg-gray-100 text-gray-700">
+              <div className="text-xs opacity-70">全部车型</div>
+              <div className="text-xl font-bold">{rows.length}</div>
+            </div>
           </div>
 
           {/* 列表 */}
@@ -282,12 +248,8 @@ export default async function SalesRankPage({
           )}
 
           {/* 数据说明 */}
-          <div className="mt-8 p-4 bg-gray-50 rounded-xl text-xs text-gray-500 space-y-1">
-            <div className="font-medium text-gray-600 mb-1">数据说明</div>
-            <div>• <span className="text-blue-600 font-medium">中汽协（批发量）</span>：车企发给经销商的发货量，含库存因素</div>
-            <div>• <span className="text-green-600 font-medium">乘联会（零售量）</span>：实际卖给消费者的数量，最能反映真实市场热度</div>
-            <div>• <span className="text-purple-600 font-medium">中汽中心（上险量）</span>：实际上险登记数量</div>
-            <div className="pt-1 text-gray-400">数据来源：IT之家/199IT转载 · 每月10日左右更新 · 排名变化为同来源环比</div>
+          <div className="mt-8 p-4 bg-gray-50 rounded-xl text-xs text-gray-500">
+            <div className="pt-1">数据综合分析自中汽协、乘联会、中汽中心等权威来源 · 每月10日左右更新</div>
           </div>
         </>
       )}
