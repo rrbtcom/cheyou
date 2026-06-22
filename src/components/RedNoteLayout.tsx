@@ -17,7 +17,10 @@ export default function RedNoteLayout({ children }: { children: React.ReactNode 
       <header className="sticky top-0 z-40 bg-white border-b border-gray-100">
         <div className="max-w-5xl mx-auto px-4 h-12 flex items-center gap-3">
           <Link href="/" className="shrink-0">
-            <div className="text-lg font-bold text-red-500 tracking-tight">车友荟</div>
+            <div>
+              <div className="text-lg font-bold text-red-500 tracking-tight leading-none">车友荟</div>
+              <div className="text-[9px] text-gray-400 leading-none mt-0.5">车友荟聚的地方</div>
+            </div>
           </Link>
           <Link
             href="/search"
