@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { WaterfallGrid, PostCardData } from "@/components/waterfall/PostCard";
 
 type Post = {
   id: string;
   title: string;
   content: string | null;
   images: string[] | null;
+  videoUrl: string | null;
   sourceUrl: string | null;
   sourcePlatform: string | null;
   publishedAt: string | null;
@@ -19,6 +21,7 @@ type Club = {
   name: string;
   slug: string;
   city: string | null;
+  brand: string | null;
   avatar: string | null;
   description: string | null;
   _count: { posts: number };
@@ -29,97 +32,134 @@ export default function BrandDetailPage() {
   const params = useParams();
   const brand = decodeURIComponent(params.slug as string);
   const [clubs, setClubs] = useState<Club[]>([]);
+  const [allPosts, setAllPosts] = useState<PostCardData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [view, setView] = useState<"posts" | "clubs">("posts");
 
   useEffect(() => {
     fetch(`/api/clubs?brand=${encodeURIComponent(brand)}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => { setClubs(data || []); setLoading(false); })
       .catch(() => { setClubs([]); setLoading(false); });
+
+    fetch(`/api/posts?brand=${encodeURIComponent(brand)}&take=200`)
+      .then((r) => r.json())
+      .then((data) => {
+        const posts = (data.posts || []).map((p: any) => ({
+          id: p.id,
+          title: p.title,
+          content: p.content,
+          images: p.images,
+          videoUrl: p.videoUrl,
+          sourceUrl: p.sourceUrl,
+          sourcePlatform: p.sourcePlatform,
+          publishedAt: p.publishedAt,
+          clubId: p.club.id,
+          clubName: p.club.name,
+          clubBrand: brand,
+          clubSlug: p.club.slug,
+        }));
+        setAllPosts(posts);
+      })
+      .catch(() => setAllPosts([]));
   }, [brand]);
 
   if (loading) return (
-    <div className="max-w-5xl mx-auto px-4 py-8 text-center text-gray-400">加载中...</div>
+    <div className="max-w-5xl mx-auto px-3">
+      <div className="text-center py-20 text-gray-400">加载中...</div>
+    </div>
   );
 
   if (clubs.length === 0) return (
-    <div className="max-w-5xl mx-auto px-4 py-8 text-center text-gray-400">暂无「{brand}」相关车友会</div>
+    <div className="max-w-5xl mx-auto px-3">
+      <div className="text-center py-20 text-gray-400">暂无「{brand}」相关车友会</div>
+    </div>
   );
 
-  const totalPosts = clubs.reduce((sum, c) => sum + c._count.posts, 0);
+  const allPosts: PostCardData[] = clubs.flatMap((club) =>
+    club.posts.map((p) => ({
+      id: p.id,
+      title: p.title,
+      content: p.content,
+      images: p.images,
+      videoUrl: p.videoUrl,
+      sourceUrl: p.sourceUrl,
+      sourcePlatform: p.sourcePlatform,
+      publishedAt: p.publishedAt,
+      clubId: club.id,
+      clubName: club.name,
+      clubBrand: brand,
+      clubSlug: club.slug,
+    }))
+  );
+
+  const totalPosts = clubs.reduce((sum, c) => sum + (c._count?.posts || c.posts.length), 0);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="max-w-5xl mx-auto px-3">
       {/* Brand Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-8 mb-8 text-white">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-3xl font-bold">
-            {brand[0]}
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold">{brand} 车友会</h1>
-            <p className="text-blue-100 mt-1">
-              {clubs.length} 个车友俱乐部 · {totalPosts} 篇精选文章
-            </p>
-          </div>
+      <div className="pt-4 pb-3 flex items-center gap-3">
+        <Link href="/clubs" className="shrink-0 p-1.5 rounded-full bg-gray-100 hover:bg-gray-200 transition">
+          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </Link>
+        <div>
+          <h1 className="font-bold text-gray-900">{brand}</h1>
+          <p className="text-xs text-gray-400">{clubs.length}个圈子 · {totalPosts}篇内容</p>
         </div>
       </div>
 
-      {/* Club List */}
-      <h2 className="text-xl font-bold mb-4 text-gray-800">全部车友俱乐部</h2>
-      <div className="space-y-4">
-        {clubs.map((club) => (
-          <Link
-            key={club.id}
-            href={`/clubs/${club.slug}`}
-            className="block bg-white border border-gray-100 rounded-xl p-5 hover:shadow-md hover:border-blue-200 transition-all"
+      {/* View Toggle */}
+      <div className="flex items-center gap-3 mb-4 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: "none" }}>
+        <div className="flex bg-gray-100 rounded-full p-0.5 shrink-0">
+          <button
+            onClick={() => setView("posts")}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              view === "posts" ? "bg-white text-gray-800 shadow-sm" : "text-gray-500"
+            }`}
           >
-            <div className="flex items-start gap-4">
-              {club.avatar ? (
-                <img src={club.avatar} alt={club.name} className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
-              ) : (
-                <div className="w-14 h-14 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xl flex-shrink-0">
-                  {club.name[0]}
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-bold text-gray-900">{club.name}</h3>
-                  {club.city && (
-                    <span className="text-xs text-gray-400">📍 {club.city}</span>
-                  )}
-                  {club.description && (
-                    <span className="text-xs text-gray-400">· {club.description}</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-3 mt-2 text-sm text-gray-500">
-                  <span>📝 {club._count.posts} 篇文章</span>
-                  {club.posts[0] && (
-                    <span className="text-gray-300">|</span>
-                  )}
-                  {club.posts[0] && (
-                    <span className="truncate max-w-xs">最新：{club.posts[0].title}</span>
-                  )}
-                </div>
-              </div>
-              <div className="flex-shrink-0 text-blue-500">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </div>
-            {club.posts.length > 0 && (
-              <div className="mt-3 flex gap-2 flex-wrap">
-                {club.posts.slice(0, 3).map((post) => (
-                  <span key={post.id} className="text-xs bg-gray-50 text-gray-500 px-2 py-1 rounded-full truncate max-w-40">
-                    {post.title}
-                  </span>
-                ))}
-              </div>
-            )}
-          </Link>
-        ))}
+            笔记
+          </button>
+          <button
+            onClick={() => setView("clubs")}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              view === "clubs" ? "bg-white text-gray-800 shadow-sm" : "text-gray-500"
+            }`}
+          >
+            圈子
+          </button>
+        </div>
       </div>
+
+      {view === "posts" ? (
+        <WaterfallGrid posts={allPosts} gap={10} />
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 pb-6">
+          {clubs.map((club) => (
+            <Link
+              key={club.id}
+              href={`/clubs/${club.slug}`}
+              className="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-md transition"
+            >
+              <div className="h-16 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+                {club.avatar ? (
+                  <img src={club.avatar} alt={club.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-2xl font-bold text-gray-300">{club.name[0]}</span>
+                )}
+                <div className="absolute top-2 right-2 bg-black/40 text-white text-xs px-1.5 py-0.5 rounded-full">
+                  {club._count?.posts || club.posts.length}
+                </div>
+              </div>
+              <div className="p-2.5">
+                <h3 className="font-semibold text-sm text-gray-800 truncate">{club.name}</h3>
+                {club.city && <p className="text-xs text-gray-400 mt-0.5">📍{club.city}</p>}
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

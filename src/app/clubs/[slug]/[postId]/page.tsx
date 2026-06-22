@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import Link from "next/link";
 
 type Post = {
@@ -23,21 +23,22 @@ type Post = {
 
 const platformLabel: Record<string, string> = {
   autohome: "汽车之家",
-  dongchedi: "懂车帝",
-  xcar: "爱卡汽车",
+  dcar: "懂车帝",
   pcauto: "太平洋汽车",
-  bilibili: "哔哩哔哩",
+  yiche: "易车",
+  toutiao: "今日头条",
+  wechat: "微信公众号",
   xiaohongshu: "小红书",
   douyin: "抖音",
-  kuaishou: "快手",
-  wechat: "微信公众号",
 };
 
 export default function PostDetailPage() {
   const params = useParams();
+  const pathname = usePathname();
   const slug = params.slug as string;
   const postId = params.postId as string;
   const [post, setPost] = useState<Post | null>(null);
+  const [currentImageIdx, setCurrentImageIdx] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -47,107 +48,138 @@ export default function PostDetailPage() {
       .catch(() => { setPost(null); setLoading(false); });
   }, [slug, postId]);
 
-  if (loading) return <div className="max-w-3xl mx-auto px-4 py-8">加载中...</div>;
-  if (!post) return <div className="max-w-3xl mx-auto px-4 py-8 text-gray-400">内容未找到</div>;
+  if (loading) return (
+    <div className="max-w-2xl mx-auto px-4">
+      <div className="text-center py-20 text-gray-400">加载中...</div>
+    </div>
+  );
+  if (!post) return (
+    <div className="max-w-2xl mx-auto px-4">
+      <div className="text-center py-20 text-gray-400">内容未找到</div>
+    </div>
+  );
 
+  const images = post.images && Array.isArray(post.images) ? post.images : [];
   const brandSlug = post.club.brand ? encodeURIComponent(post.club.brand) : "";
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
-      {/* Breadcrumb */}
-      <nav className="text-sm text-gray-400 mb-6 flex items-center gap-1 flex-wrap">
-        <Link href="/clubs" className="hover:text-blue-600">车友会</Link>
-        <span>/</span>
-        <Link href={`/clubs/${post.club.slug}`} className="hover:text-blue-600">{post.club.name}</Link>
-        {post.club.brand && (
-          <>
-            <span>/</span>
-            <Link href={`/brands/${brandSlug}`} className="hover:text-blue-600">{post.club.brand}车友会</Link>
-          </>
-        )}
-        <span>/</span>
-        <span className="text-gray-600">正文</span>
-      </nav>
-
-      {/* Source info bar */}
-      <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 mb-6 text-sm text-blue-700 flex items-center gap-2 flex-wrap">
-        <span>内容来自：<strong>{post.club.name}</strong></span>
+    <div className="max-w-2xl mx-auto pb-24">
+      {/* Sticky top bar */}
+      <div className="sticky top-12 z-30 bg-white/90 backdrop-blur-sm border-b border-gray-100 px-4 py-2.5 flex items-center gap-3">
+        <Link href={`/clubs/${post.club.slug}`} className="p-1 rounded-full hover:bg-gray-100 transition">
+          <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </Link>
+        <div className="flex items-center gap-2 min-w-0">
+          {post.club.avatar ? (
+            <img src={post.club.avatar} alt={post.club.name} className="w-6 h-6 rounded-full object-cover" />
+          ) : (
+            <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center text-red-500 text-xs font-bold">
+              {post.club.name[0]}
+            </div>
+          )}
+          <span className="text-sm font-medium text-gray-700 truncate">{post.club.name}</span>
+        </div>
         {post.sourcePlatform && (
-          <>
-            <span>·</span>
-            <span>转自{platformLabel[post.sourcePlatform] || post.sourcePlatform}</span>
-          </>
-        )}
-        {post.sourceUrl && (
-          <>
-            <span>·</span>
-            <a href={post.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-900">
-              原文链接
-            </a>
-          </>
+          <span className="ml-auto text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full shrink-0">
+            {platformLabel[post.sourcePlatform] || post.sourcePlatform}
+          </span>
         )}
       </div>
 
-      {/* Article */}
-      <article>
-        <h1 className="text-2xl font-bold text-gray-900 mb-3">{post.title}</h1>
-        {post.publishedAt && (
-          <p className="text-sm text-gray-400 mb-6">
-            {new Date(post.publishedAt).toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" })}
-          </p>
-        )}
-
-        {post.images && Array.isArray(post.images) && post.images.length > 0 && (
-          <div className="space-y-3 mb-6">
-            {post.images.map((img: string, i: number) => (
-              <img key={i} src={img} alt="" className="w-full rounded-lg" />
-            ))}
-          </div>
-        )}
-
-        {post.videoUrl && (
-          <div className="mb-6">
-            <video src={post.videoUrl} controls className="w-full rounded-lg" />
-          </div>
-        )}
-
-        {post.content && (
-          <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap">{post.content}</div>
-        )}
-      </article>
-
-      {/* Bottom Navigation */}
-      <div className="mt-10 pt-6 border-t border-gray-100">
-        <div className="bg-gray-50 rounded-xl p-5">
-          <p className="text-xs text-gray-400 mb-3">📍 相关推荐</p>
-          <div className="flex flex-col sm:flex-row gap-3">
-            {post.club.brand && (
-              <Link
-                href={`/brands/${brandSlug}`}
-                className="flex-1 flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-4 py-3 hover:border-blue-300 hover:shadow-sm transition-all group"
-              >
-                <span className="text-xl">🚗</span>
-                <div>
-                  <p className="text-xs text-gray-400">查看品牌</p>
-                  <p className="text-sm font-medium text-gray-800 group-hover:text-blue-600">
-                    {post.club.brand}车型大全
-                  </p>
+      {/* Images carousel */}
+      {images.length > 0 && (
+        <div className="relative bg-black">
+          <div className="overflow-x-auto snap-x snap-mandatory scrollbar-hide" style={{ scrollbarWidth: "none" }}>
+            <div className="flex" style={{ transition: "transform 0.3s" }}>
+              {images.map((img, i) => (
+                <div key={i} className="w-full shrink-0 snap-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={img}
+                    alt={`图片${i + 1}`}
+                    className="w-full object-contain max-h-[70vh]"
+                    style={{ maxHeight: "70vh" }}
+                  />
                 </div>
-              </Link>
-            )}
+              ))}
+            </div>
+          </div>
+          {images.length > 1 && (
+            <div className="absolute bottom-3 right-3 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full">
+              {images.length}图
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Video */}
+      {post.videoUrl && (
+        <div className="bg-black">
+          <video
+            src={post.videoUrl}
+            controls
+            className="w-full max-h-[70vh] object-contain"
+          />
+        </div>
+      )}
+
+      {/* Content */}
+      <div className="px-4 py-5">
+        <h1 className="text-lg font-bold text-gray-900 leading-snug mb-3">{post.title}</h1>
+
+        {/* Meta */}
+        <div className="flex items-center gap-3 text-xs text-gray-400 mb-5 flex-wrap">
+          {post.publishedAt && (
+            <span>{new Date(post.publishedAt).toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" })}</span>
+          )}
+          {post.club.brand && (
+            <Link href={`/brands/${brandSlug}`} className="text-red-500 bg-red-50 px-2 py-0.5 rounded-full">
+              {post.club.brand}
+            </Link>
+          )}
+          {post.sourceUrl && (
+            <a href={post.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+              原文 ↗
+            </a>
+          )}
+        </div>
+
+        {/* Text content */}
+        {post.content && (
+          <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+            {post.content}
+          </div>
+        )}
+      </div>
+
+      {/* Bottom recommendation */}
+      <div className="mx-4 bg-gray-50 rounded-2xl p-4">
+        <p className="text-xs text-gray-400 mb-3">相关推荐</p>
+        <div className="flex gap-3">
+          {post.club.brand && (
             <Link
-              href={`/clubs/${post.club.slug}`}
-              className="flex-1 flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-4 py-3 hover:border-blue-300 hover:shadow-sm transition-all group"
+              href={`/?brand=${brandSlug}`}
+              className="flex-1 flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2.5 hover:border-red-300 transition group"
             >
-              <span className="text-xl">🚙</span>
+              <span className="text-lg">🚗</span>
               <div>
-                <p className="text-xs text-gray-400">进入俱乐部</p>
-                <p className="text-sm font-medium text-gray-800 group-hover:text-blue-600">
-                  {post.club.name}
-                </p>
+                <p className="text-xs text-gray-400">浏览更多</p>
+                <p className="text-xs font-medium text-gray-700 group-hover:text-red-500">{post.club.brand}笔记</p>
               </div>
             </Link>
-          </div>
+          )}
+          <Link
+            href={`/clubs/${post.club.slug}`}
+            className="flex-1 flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2.5 hover:border-red-300 transition group"
+          >
+            <span className="text-lg">👥</span>
+            <div>
+              <p className="text-xs text-gray-400">进入</p>
+              <p className="text-xs font-medium text-gray-700 group-hover:text-red-500">{post.club.name}</p>
+            </div>
+          </Link>
         </div>
       </div>
     </div>
