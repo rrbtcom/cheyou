@@ -33,6 +33,7 @@ export async function POST(req: Request) {
       videoUrl: data.videoUrl || null,
       sourceUrl: data.sourceUrl || null,
       sourcePlatform: data.sourcePlatform || null,
+      username: data.username || null,
       publishedAt: data.publishedAt ? new Date(data.publishedAt) : new Date(),
     },
   });

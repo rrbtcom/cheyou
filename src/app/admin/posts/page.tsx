@@ -5,6 +5,7 @@ type Club = { id: string; name: string; city: string | null; brand: string | nul
 type Post = {
   id: string; title: string; content: string; images: string[];
   sourceUrl: string | null; sourcePlatform: string | null;
+  username: string | null;
   publishedAt: string | null;
   club: { name: string; city: string | null; brand: string | null };
 };
@@ -120,6 +121,7 @@ export default function PostsAdmin() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="font-medium">{p.title}</span>
+                      {p.username && <span className="text-xs px-2 py-0.5 rounded bg-green-50 text-green-600">{p.username}</span>}
                       {p.sourcePlatform && <span className="text-xs px-2 py-0.5 rounded bg-purple-50 text-purple-600">{p.sourcePlatform}</span>}
                     </div>
                     <div className="text-sm text-gray-500 flex gap-4 flex-wrap">

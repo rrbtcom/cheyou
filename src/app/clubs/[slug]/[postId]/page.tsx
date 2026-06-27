@@ -12,6 +12,7 @@ type Post = {
   videoUrl: string | null;
   sourceUrl: string | null;
   sourcePlatform: string | null;
+  username: string | null;
   publishedAt: string | null;
   club: {
     id: string;
@@ -81,6 +82,9 @@ export default function PostDetailPage() {
           )}
           <span className="text-sm font-medium text-gray-700 truncate">{post.club.name}</span>
         </div>
+        {post.username && (
+          <span className="text-xs text-gray-500 ml-auto truncate max-w-[120px]">作者：{post.username}</span>
+        )}
         {post.sourcePlatform && (
           <span className="ml-auto text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full shrink-0">
             {platformLabel[post.sourcePlatform] || post.sourcePlatform}

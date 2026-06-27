@@ -55,6 +55,7 @@ export default function ClubsPage() {
           videoUrl: p.videoUrl,
           sourceUrl: p.sourceUrl,
           sourcePlatform: p.sourcePlatform,
+          username: p.username,
           publishedAt: p.publishedAt,
           clubId: p.club.id,
           clubName: p.club.name,

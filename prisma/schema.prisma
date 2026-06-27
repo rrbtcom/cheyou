@@ -203,6 +203,7 @@ model ClubPost {
   videoUrl       String?
   sourceUrl      String?
   sourcePlatform String?
+  username       String?
   publishedAt    DateTime?
   createdAt      DateTime  @default(now())
   @@unique([clubId, sourceUrl])

@@ -53,6 +53,7 @@ export default function ClubDetailPage() {
           videoUrl: p.videoUrl,
           sourceUrl: p.sourceUrl,
           sourcePlatform: p.sourcePlatform,
+          username: p.username,
           publishedAt: p.publishedAt,
           clubId: p.club.id,
           clubName: p.club.name,
@@ -111,6 +112,8 @@ export default function ClubDetailPage() {
       {club.description && (
         <div className="mb-4 px-1">
           <p className="text-sm text-gray-500 leading-relaxed">{club.description}</p>
+        </div>
+      )}
         </div>
       )}
 

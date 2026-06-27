@@ -32,6 +32,7 @@ export type PostCardData = {
   videoUrl?: string | null;
   sourceUrl?: string | null;
   sourcePlatform?: string | null;
+  username?: string | null;
   publishedAt?: string | null;
   clubId?: string;
   clubName?: string;
@@ -109,6 +110,11 @@ function PostCard({ post, style }: { post: PostCardData; style?: React.CSSProper
         {/* Meta row */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 min-w-0">
+            {post.username && (
+              <span className="text-xs text-gray-600 truncate max-w-[80px]">
+                {post.username}
+              </span>
+            )}
             {post.clubBrand && (
               <span className="text-xs text-red-500 font-medium bg-red-50 px-1.5 py-0.5 rounded-full whitespace-nowrap">
                 {post.clubBrand}

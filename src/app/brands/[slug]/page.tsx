@@ -13,6 +13,7 @@ type Post = {
   videoUrl: string | null;
   sourceUrl: string | null;
   sourcePlatform: string | null;
+  username: string | null;
   publishedAt: string | null;
 };
 
