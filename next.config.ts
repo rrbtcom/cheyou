@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "**.weixin.com" },
       { protocol: "https", hostname: "**.xiaohongshu.com" },
       { protocol: "https", hostname: "**.douyin.com" },
+      { protocol: "https", hostname: "images.unsplash.com" },
     ],
   },
 };
